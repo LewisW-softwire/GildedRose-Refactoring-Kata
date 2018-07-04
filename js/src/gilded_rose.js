@@ -1,5 +1,5 @@
 class Item {
-  constructor(name, sellIn, quality){
+  constructor(name, sellIn, quality) {
     this.name = name;
     this.sellIn = sellIn;
     this.quality = quality;
@@ -7,56 +7,59 @@ class Item {
 }
 
 class Shop {
-  constructor(items=[]){
+  constructor(items = []) {
     this.items = items;
   }
   updateQuality() {
+
     for (var i = 0; i < this.items.length; i++) {
-      if (this.items[i].name != 'Aged Brie' && this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-        if (this.items[i].quality > 0) {
-          if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-            this.items[i].quality = this.items[i].quality - 1;
-          }
-        }
-      } else {
-        if (this.items[i].quality < 50) {
-          this.items[i].quality = this.items[i].quality + 1;
-          if (this.items[i].name == 'Backstage passes to a TAFKAL80ETC concert') {
-            if (this.items[i].sellIn < 11) {
-              if (this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1;
-              }
-            }
-            if (this.items[i].sellIn < 6) {
-              if (this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1;
-              }
-            }
-          }
+      let item = this.items[i];
+      if (item.name.startsWith('Sulfuras')) {
+        continue;
+      }
+
+      
+      let qualityChangeAmount = -1;
+
+      let increasingQuality = item.name === 'Aged Brie' || item.name.startsWith('Backstage pass');
+      if (increasingQuality) {
+        qualityChangeAmount = 1;
+        if (item.name.startsWith('Backstage pass')) {
+          qualityChangeAmount = this.updateBackstagePassQuality(item);
         }
       }
-      if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-        this.items[i].sellIn = this.items[i].sellIn - 1;
+
+      item.sellIn = item.sellIn - 1;
+
+      if (item.sellIn < 0) {
+          qualityChangeAmount=qualityChangeAmount*2;
       }
-      if (this.items[i].sellIn < 0) {
-        if (this.items[i].name != 'Aged Brie') {
-          if (this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-            if (this.items[i].quality > 0) {
-              if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                this.items[i].quality = this.items[i].quality - 1;
-              }
-            }
-          } else {
-            this.items[i].quality = this.items[i].quality - this.items[i].quality;
-          }
-        } else {
-          if (this.items[i].quality < 50) {
-            this.items[i].quality = this.items[i].quality + 1;
-          }
-        }
+
+      if(item.name.startsWith('Conjured')){
+         qualityChangeAmount*=2;
+      }
+      item.quality += qualityChangeAmount;
+      //Prevent the quality from boing below 0 or becoming greater then 50
+      if (item.quality <= 0) {
+        item.quality = Math.max(0, item.quality);
+      } else if (item.quality >= 50) {
+        item.quality = Math.min(50, item.quality);
       }
     }
 
     return this.items;
   }
+
+  updateBackstagePassQuality(item) {
+    if(item.sellIn<0){
+      return -item.quality;
+    }else if (item.sellIn < 6) {
+      return 3;
+    }else if (item.sellIn < 11) {
+      return 2;
+    }else{
+      return 1;
+    }
+  }
+
 }
